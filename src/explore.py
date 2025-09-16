@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from scipy.stats import mstats
@@ -127,11 +128,96 @@ def crear_strada(df,target,num_cuartiles):
 
 df_clean = df.drop_duplicates(keep='first').reset_index(drop=True)
 df_cuartiles =crear_strada(df_clean,'Performance Index',3) #me genera 3 cuartiles con muestras de  3291 cada una
-print(df_cuartiles['strata'].value_counts().sort_index()) #imprime las filas strata y su cantidad de elementos
-print(df_cuartiles[['Performance Index', 'strata']].head(20)) #imprime los primeros 20 elementos y el grupo percentil asociado
-print(df_cuartiles.groupby('strata')['Performance Index'].agg(['count','min','mean','max'])) #imprime minimos, maximos y mediana de cada cuartil 
+#print(df_cuartiles['strata'].value_counts().sort_index()) #imprime las filas strata y su cantidad de elementos
+#print(df_cuartiles[['Performance Index', 'strata']].head(20)) #imprime los primeros 20 elementos y el grupo percentil asociado
+#print(df_cuartiles.groupby('strata')['Performance Index'].agg(['count','min','mean','max'])) #imprime minimos, maximos y mediana de cada cuartil 
+## --------------------------------separacion de la data -----------------------------------------------
+df_train = pd.DataFrame(columns=df_clean.columns)
+df_test = pd.DataFrame(columns=df_clean.columns)
+for strata in df_cuartiles['strata'].unique():
+    data_clase =  df_cuartiles[df_cuartiles['strata'] == strata]  #esto filtra todas las columnas de la data actual.
+    train_data_temp = data_clase.sample(frac=0.7, random_state=42) #42 es la semilla de pseudo aleatoriedad
+    testing_data_temp = data_clase.drop(train_data_temp.index) 
+    # Excluir la columna 'strata' de los sets de entrenamiento y prueba
+    train_data_temp = train_data_temp.drop(columns=['strata'])
+    testing_data_temp = testing_data_temp.drop(columns=['strata'])
+
+    df_train = pd.concat([df_train, train_data_temp], ignore_index=True)
+    df_test = pd.concat([df_test, testing_data_temp], ignore_index=True)
+df_train = df_train.drop(columns=['strata'])
+df_test = df_test.drop(columns=['strata'])
+#print(df_train.columns)
+#print (len(df_train))
+print(df_train.columns.tolist())  # Lista explícita de columnas
+print(df_train.head())  # Muestra las primeras filas con los nombres
+# Seleccionar columnas para boxplot
+def minibatch(X,y,batch_size,w,b, alpha=1e-4):
+    perm = np.random.permutation(X.shape[0])
+    for start in range(0, X.shape[0], batch_size):
+        idx = perm[start:start + batch_size]   #array de indices
+        Xb = X[idx, :]   # submatriz del batch , genera una matriz xb de filas idx y todas las columnas (5 columnas) a partir del array de indices
+        yb = y[idx]      # submatriz (batch_size,) , busca en el vector de etiquetas los valores asociados a sus indices
+
+        # calcular predicciones para el batch (vectorizado)
+        preds = Xb.dot(w) + b        # (m_b,)
+        err = preds - yb             # (m_b,)  <-- preds - y (convención)
+        m_b = len(yb)
+
+        grad_w = (2.0 / m_b) * (Xb.T.dot(err))   # vector (n_features,)
+        grad_b = (2.0 / m_b) * np.sum(err)       # escalar
+
+        # CORRECCIÓN: descenso (restar)
+        w = w - alpha * grad_w
+        b = b - alpha * grad_b
+
+    return w, b
+
+def regresion_lineal(df , iteraciones , batch_size):
+    error = 1e-10 #tolerancia
+
+    #definicion de los valores de x
+    hstudied= df['Hours Studied'].to_numpy()
+    pscores = df['Previous Scores'].to_numpy()
+    paperpractice = df['Sample Question Papers Practiced'].to_numpy()
+    sleeph = df['Sleep Hours'].to_numpy()   
+    actExtra = df['Extracurricular Activities'].map({'Yes':1, 'No':0})
+
+    #definicion del label/etiqueta  
+    sperformance =  df['Performance Index'].to_numpy()
+
+    #valores iniciales para el modelo 
+    n_features = 5  
+    w = np.random.randn(n_features) * 0.001  # pesos iniciales pequeños
+    b = 0.0  # bias inicial
+    #vector matricial
+    X = np.column_stack([hstudied, pscores, paperpractice, sleeph, actExtra])
+    historial_L = np.zeros(iteraciones) #historial por las iteraciones del 
+    #definicion de la funcion numerica:
+    for i in range(iteraciones):
 
 
+        #calculo del minibatch
+        w,b = minibatch(X,sperformance,batch_size,w,b)
+        #-------------------------------------------------verifiacion del error ---------------------------------------------------------------------------------------
+
+        #vector de datos de la funcion inicializado en cero
+        y = np.zeros(len(hstudied))
+
+        #calculo de las y: todas las columnas x deberian de tener la misma cantidad de datos para el training set 
+        for j in range(len(hstudied)):
+            y[j] = w[0]*hstudied[j] + w[1]*pscores[j] +  w[2]*paperpractice[j] +  w[3]*sleeph[j] +  w[4]*actExtra[j] + b
+        #calculo de la funcion de perdida
+        funcion_perdida = (  y- sperformance )**2 
+        #calculo de la funcion de costo : 
+        funcion_costo = np.sum(funcion_perdida) * (1/len(y)) #el n es el total de
+
+        historial_L[i] = funcion_costo
+
+    print(funcion_costo)
+  
+
+
+regresion_lineal(df_train, 5, 64)
 
 
 
