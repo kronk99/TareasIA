@@ -1,0 +1,24 @@
+{
+  "os": "Windows-11-10.0.26100-SP0",
+  "python": "CPython 3.12.0",
+  "startedAt": "2025-10-31T09:05:28.422773Z",
+  "program": "ModeloABase.ipynb",
+  "codePath": "ModeloABase.ipynb",
+  "codePathLocal": "ModeloABase.ipynb",
+  "email": "kgrioghar@gmail.com",
+  "root": "C:\\Users\\Kevin\\Documents\\ITCR\\IA\\Proyecto I",
+  "host": "LaptopKevin",
+  "executable": "C:\\Users\\Kevin\\audio-env\\Scripts\\python.exe",
+  "cpu_count": 8,
+  "cpu_count_logical": 16,
+  "disk": {
+    "/": {
+      "total": "511207010304",
+      "used": "210668097536"
+    }
+  },
+  "memory": {
+    "total": "16538980352"
+  },
+  "writerId": "g3r9q8nqf0ydpie6hzudcac4qwaco1zs"
+}

@@ -1,0 +1,7 @@
+{"time":"2025-10-31T02:34:23.9609361-06:00","level":"INFO","msg":"stream: starting","core version":"0.22.3"}
+{"time":"2025-10-31T02:34:24.312458-06:00","level":"INFO","msg":"stream: created new stream","id":"nhiwxblv"}
+{"time":"2025-10-31T02:34:24.312458-06:00","level":"INFO","msg":"handler: started","stream_id":"nhiwxblv"}
+{"time":"2025-10-31T02:34:24.3139994-06:00","level":"INFO","msg":"stream: started","id":"nhiwxblv"}
+{"time":"2025-10-31T02:34:24.3139994-06:00","level":"INFO","msg":"sender: started","stream_id":"nhiwxblv"}
+{"time":"2025-10-31T02:34:24.3139994-06:00","level":"INFO","msg":"writer: started","stream_id":"nhiwxblv"}
+{"time":"2025-10-31T02:36:14.026508-06:00","level":"INFO","msg":"api: retrying error","error":"Post \"https://api.wandb.ai/graphql\": read tcp 192.168.100.118:52207->35.186.228.49:443: wsarecv: Se produjo un error durante el intento de conexión ya que la parte conectada no respondió adecuadamente tras un periodo de tiempo, o bien se produjo un error en la conexión establecida ya que el host conectado no ha podido responder."}

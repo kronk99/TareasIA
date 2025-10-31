@@ -1,0 +1,6 @@
+{"time":"2025-10-31T01:27:38.957832-06:00","level":"INFO","msg":"stream: starting","core version":"0.22.3"}
+{"time":"2025-10-31T01:27:39.5108454-06:00","level":"INFO","msg":"stream: created new stream","id":"upp3korp"}
+{"time":"2025-10-31T01:27:39.5108454-06:00","level":"INFO","msg":"handler: started","stream_id":"upp3korp"}
+{"time":"2025-10-31T01:27:39.5190875-06:00","level":"INFO","msg":"stream: started","id":"upp3korp"}
+{"time":"2025-10-31T01:27:39.5190875-06:00","level":"INFO","msg":"writer: started","stream_id":"upp3korp"}
+{"time":"2025-10-31T01:27:39.5190875-06:00","level":"INFO","msg":"sender: started","stream_id":"upp3korp"}

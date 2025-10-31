@@ -1,0 +1,53 @@
+_wandb:
+    value:
+        cli_version: 0.22.3
+        e:
+            218ko0k8gqff6vy6kx1rszxb6sgorsk9:
+                codePath: Proyecto_I.ipynb
+                codePathLocal: Proyecto_I.ipynb
+                cpu_count: 8
+                cpu_count_logical: 16
+                disk:
+                    /:
+                        total: "511207010304"
+                        used: "205495894016"
+                email: kgrioghar@gmail.com
+                executable: C:\Users\Kevin\AppData\Local\Programs\Python\Python314\python.exe
+                host: LaptopKevin
+                memory:
+                    total: "16538980352"
+                os: Windows-11-10.0.26100-SP0
+                program: Proyecto_I.ipynb
+                python: CPython 3.14.0
+                root: C:\Users\Kevin\Documents\ITCR\IA\Proyecto I
+                startedAt: "2025-10-31T06:49:43.555726Z"
+                writerId: 218ko0k8gqff6vy6kx1rszxb6sgorsk9
+        m: []
+        python_version: 3.14.0
+        t:
+            "1":
+                - 1
+                - 5
+                - 53
+            "2":
+                - 1
+                - 5
+                - 53
+            "3":
+                - 2
+                - 16
+            "4": 3.14.0
+            "5": 0.22.3
+            "8":
+                - 1
+                - 3
+            "12": 0.22.3
+            "13": windows-amd64
+batch_size:
+    value: 32
+epochs:
+    value: 30
+lr:
+    value: 0.01
+model:
+    value: LeNet5

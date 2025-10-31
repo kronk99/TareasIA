@@ -1,0 +1,24 @@
+{
+  "os": "Windows-11-10.0.26100-SP0",
+  "python": "CPython 3.14.0",
+  "startedAt": "2025-10-31T06:57:32.954414Z",
+  "program": "Proyecto_I.ipynb",
+  "codePath": "Proyecto_I.ipynb",
+  "codePathLocal": "Proyecto_I.ipynb",
+  "email": "kgrioghar@gmail.com",
+  "root": "C:\\Users\\Kevin\\Documents\\ITCR\\IA\\Proyecto I",
+  "host": "LaptopKevin",
+  "executable": "C:\\Users\\Kevin\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+  "cpu_count": 8,
+  "cpu_count_logical": 16,
+  "disk": {
+    "/": {
+      "total": "511207010304",
+      "used": "205760598016"
+    }
+  },
+  "memory": {
+    "total": "16538980352"
+  },
+  "writerId": "5zbv6ppecy0czp6wmbcilovvd61cbgl6"
+}

@@ -1,0 +1,41 @@
+2025-10-31 02:34:21,700 INFO    MainThread:16804 [wandb_setup.py:_flush():81] Current SDK version is 0.22.3
+2025-10-31 02:34:21,700 INFO    MainThread:16804 [wandb_setup.py:_flush():81] Configure stats pid to 16804
+2025-10-31 02:34:21,701 INFO    MainThread:16804 [wandb_setup.py:_flush():81] Loading settings from C:\Users\Kevin\.config\wandb\settings
+2025-10-31 02:34:21,701 INFO    MainThread:16804 [wandb_setup.py:_flush():81] Loading settings from C:\Users\Kevin\Documents\ITCR\IA\Proyecto I\wandb\settings
+2025-10-31 02:34:21,701 INFO    MainThread:16804 [wandb_setup.py:_flush():81] Loading settings from environment variables
+2025-10-31 02:34:21,702 INFO    MainThread:16804 [wandb_init.py:setup_run_log_directory():706] Logging user logs to C:\Users\Kevin\Documents\ITCR\IA\Proyecto I\wandb\run-20251031_023421-nhiwxblv\logs\debug.log
+2025-10-31 02:34:21,707 INFO    MainThread:16804 [wandb_init.py:setup_run_log_directory():707] Logging internal logs to C:\Users\Kevin\Documents\ITCR\IA\Proyecto I\wandb\run-20251031_023421-nhiwxblv\logs\debug-internal.log
+2025-10-31 02:34:21,708 INFO    MainThread:16804 [wandb_init.py:monkeypatch_ipython():625] configuring jupyter hooks <wandb.sdk.wandb_init._WandbInit object at 0x000001BEFBB13D40>
+2025-10-31 02:34:21,708 INFO    MainThread:16804 [wandb_init.py:init():833] calling init triggers
+2025-10-31 02:34:21,708 INFO    MainThread:16804 [wandb_init.py:init():838] wandb.init called with sweep_config: {}
+config: {'lr': 0.01, 'batch_size': 32, 'epochs': 30, 'model': 'LeNet5-Audio-Base', '_wandb': {}}
+2025-10-31 02:34:21,708 INFO    MainThread:16804 [wandb_init.py:init():881] starting backend
+2025-10-31 02:34:23,936 INFO    MainThread:16804 [wandb_init.py:init():884] sending inform_init request
+2025-10-31 02:34:23,959 INFO    MainThread:16804 [wandb_init.py:init():892] backend started and connected
+2025-10-31 02:34:23,963 INFO    MainThread:16804 [wandb_run.py:_label_probe_notebook():1328] probe notebook
+2025-10-31 02:34:23,964 INFO    MainThread:16804 [wandb_init.py:init():962] updated telemetry
+2025-10-31 02:34:23,965 INFO    MainThread:16804 [wandb_init.py:init():986] communicating run to backend with 90.0 second timeout
+2025-10-31 02:34:24,553 INFO    MainThread:16804 [wandb_init.py:init():1033] starting run threads in backend
+2025-10-31 02:34:24,702 INFO    MainThread:16804 [wandb_run.py:_console_start():2506] atexit reg
+2025-10-31 02:34:24,702 INFO    MainThread:16804 [wandb_run.py:_redirect():2354] redirect: wrap_raw
+2025-10-31 02:34:24,702 INFO    MainThread:16804 [wandb_run.py:_redirect():2423] Wrapping output streams.
+2025-10-31 02:34:24,702 INFO    MainThread:16804 [wandb_run.py:_redirect():2446] Redirects installed.
+2025-10-31 02:34:24,705 INFO    MainThread:16804 [wandb_init.py:init():1073] run started, returning control to user process
+2025-10-31 02:34:27,948 INFO    MainThread:16804 [wandb_init.py:_post_run_cell_hook():595] [no run ID] resuming backend
+2025-10-31 02:45:34,172 ERROR   wandb-AsyncioManager-main:16804 [service_client.py:_forward_responses():77] Error reading server response.
+Traceback (most recent call last):
+  File "C:\Users\Kevin\audio-env\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 73, in _forward_responses
+    while response := await self._read_server_response():
+                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kevin\audio-env\Lib\site-packages\wandb\sdk\lib\service\service_client.py", line 87, in _read_server_response
+    header = await self._reader.readexactly(_HEADER_BYTE_INT_LEN)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Kevin\AppData\Local\Programs\Python\Python312\Lib\asyncio\streams.py", line 734, in readexactly
+    await self._wait_for_data('readexactly')
+  File "C:\Users\Kevin\AppData\Local\Programs\Python\Python312\Lib\asyncio\streams.py", line 527, in _wait_for_data
+    await self._waiter
+  File "C:\Users\Kevin\AppData\Local\Programs\Python\Python312\Lib\asyncio\selector_events.py", line 1009, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [WinError 10054] Se ha forzado la interrupción de una conexión existente por el host remoto
+2025-10-31 02:45:34,175 INFO    wandb-AsyncioManager-main:16804 [mailbox.py:close():137] Closing mailbox, abandoning 1 handles.
