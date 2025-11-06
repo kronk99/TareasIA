@@ -60,5 +60,3 @@ with open(output_file, "w", encoding="utf-8") as jsonl:
 
             except Exception as e:
                 print(f"Error leyendo {filename}: {e}")
-
-print(f"\nProceso completado. Archivo generado: {output_file}")

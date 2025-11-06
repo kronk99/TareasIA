@@ -25,5 +25,3 @@ def embed_file(input_file, output_file, model="text-embedding-3-small"):
 
 embed_file("output/documents_parrafos.jsonl", "output/embeddings_parrafos.jsonl")
 embed_file("output/documents_sliding.jsonl", "output/embeddings_sliding.jsonl")
-
-print("Embeddings generados con éxito")

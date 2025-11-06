@@ -50,7 +50,3 @@ with open(INPUT_FILE, "r", encoding="utf-8") as infile, \
         for idx, c in enumerate(chunks):
             record = {**doc, "chunk_id": f"{doc['id']}_s{idx}", "chunk": c}
             out_slide.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-print("Preprocesamiento completado")
-print(f"Párrafos → {OUT_PARAGRAPH}")
-print(f"Sliding window → {OUT_SLIDING}")
