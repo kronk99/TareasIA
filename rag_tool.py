@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 from openai import OpenAI
 from langchain_core.tools import StructuredTool
-
+from pydantic import BaseModel, Field
 client = OpenAI()
 
 def load_faiss_index(index_path, metadata_path):
@@ -45,3 +45,6 @@ rag_tool = StructuredTool(
     description="Extrae información contextual desde la base de datos vectorial (RAG).",
     args_schema=RAGToolInput
 )
+
+
+#
