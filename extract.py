@@ -1,5 +1,6 @@
 import os
 import json
+#cambiarlo a pdf plumber
 from pypdf import PdfReader
 from tqdm import tqdm
 from datetime import datetime

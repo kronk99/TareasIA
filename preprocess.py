@@ -3,7 +3,7 @@ import unicodedata
 import re
 import os
 
-INPUT_FILE   = "clean_texts/10_SEMANA_AI_20251007_1.json"         # nuevo archivo con el formato proporcionado
+INPUT_DIR  = "clean_texts"         # nuevo archivo con el formato proporcionado
 OUT_PARAGRAPH = "output/documents_parrafos.jsonl"
 
 def normalize_text(text: str) -> str:
@@ -25,32 +25,49 @@ def split_paragraphs(text: str):
     """Divide el texto en párrafos por cada salto de línea."""
     return [ln.strip() for ln in text.split("\n") if len(ln.strip().split()) > 3]
 
-with open(INPUT_FILE, "r", encoding="utf-8") as infile, \
-     open(OUT_PARAGRAPH, "w", encoding="utf-8") as out_par:
+# Crear carpeta de salida si no existe
+os.makedirs(os.path.dirname(OUT_PARAGRAPH), exist_ok=True)
 
-    doc = json.load(infile)
+# Abrir archivo de salida una sola vez
+with open(OUT_PARAGRAPH, "w", encoding="utf-8") as out_par:
 
-    file_name = doc["file_name"]                     # p. ej. "10_SEMANA_AI_20251007_1-222887296.pdf"
-    parts = file_name.split("_", 4)                  # ["10","SEMANA","AI","20251007","1-222887296.pdf"]
-    base_name = "_".join(parts[:4])                  # "10_SEMANA_AI_20251007"
-    sub_id = parts[4].split("-")[0]                  # "1"
-    chunk_base_id = f"{base_name}_{sub_id}.pdf"      # "10_SEMANA_AI_20251007_1.pdf"
+    # Iterar sobre todos los archivos JSON de la carpeta
+    for file in os.listdir(INPUT_DIR):
+        if not file.endswith(".json"):
+            continue
 
-    documento = base_name                            # documento sin sufijos
-    autor = doc["metadata"].get("author", "Desconocido")
+        input_path = os.path.join(INPUT_DIR, file)
 
-    parag_index = 0
-    for page in doc.get("pages", []):
-        raw_text = page.get("text", "")
-        norm_text = normalize_text(raw_text)
-        paragraphs = split_paragraphs(norm_text)
+        try:
+            with open(input_path, "r", encoding="utf-8") as infile:
+                doc = json.load(infile)
+        except Exception as e:
+            print(f"⚠️ Error al leer {file}: {e}")
+            continue
 
-        for p in paragraphs:
-            record = {
-                "chunk_id": f"{chunk_base_id}_p{parag_index}",
-                "chunk": p,
-                "autor": autor,
-                "documento": documento,
-            }
-            out_par.write(json.dumps(record, ensure_ascii=False) + "\n")
-            parag_index += 1
+        file_name = doc["file_name"]
+        parts = file_name.split("_", 4)
+        base_name = "_".join(parts[:4])
+        sub_id = parts[4].split("-")[0]
+        chunk_base_id = f"{base_name}_{sub_id}.pdf"
+
+        documento = base_name
+        autor = doc["metadata"].get("author", "Desconocido")
+
+        parag_index = 0
+        for page in doc.get("pages", []):
+            raw_text = page.get("text", "")
+            norm_text = normalize_text(raw_text)
+            paragraphs = split_paragraphs(norm_text)
+
+            for p in paragraphs:
+                record = {
+                    "chunk_id": f"{chunk_base_id}_p{parag_index}",
+                    "chunk": p,
+                    "autor": autor,
+                    "documento": documento,
+                }
+                out_par.write(json.dumps(record, ensure_ascii=False) + "\n")
+                parag_index += 1
+
+        print(f"✅ Procesado: {file} → {parag_index} párrafos extraídos.")
