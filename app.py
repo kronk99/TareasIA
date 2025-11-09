@@ -7,7 +7,7 @@ import orquestador
 #-------------------
 # Se supone una funcion que recibe la pregunta 
 # y devuelve (texto_respuesta, lista_de_fuentes)
-def call_agent(pregunta: str, rag: str, busqueda_web: bool): #agregar lo de busqueda web
+def call_agent(pregunta: str, rag: str): #agregar lo de busqueda web
     "este es el metood para llamar al agente"
     "rag identifica la estrategia de segmentacion que se escoge"
     "busqueda web es un checkbox para usar websearchtool"
@@ -22,9 +22,9 @@ def call_agent(pregunta: str, rag: str, busqueda_web: bool): #agregar lo de busq
     #]
     #return respuesta, fuentes
     ultimos_msgs = st.session_state.historial[-6:]
-    frag_textos,fuentes = orquestador.decide_and_respond(pregunta,ultimos_msgs)
-    respuesta = orquestador.construir_respuesta(pregunta ,frag_textos,fuentes,rag)
-    return respuesta
+    frag_textos,fuentes = orquestador.decide_and_respond(pregunta,ultimos_msgs,rag)
+    #respuesta = orquestador.construir_respuesta(pregunta ,frag_textos,fuentes)
+    return frag_textos,fuentes
 
 # Configuración inicial de Streamlit
 st.set_page_config(page_title="Chat RAG", page_icon="💬", layout="wide")
@@ -38,7 +38,7 @@ if "chat_sessions" not in st.session_state:
 if "agente_nombre" not in st.session_state:
     st.session_state.agente_nombre = "Agente IA"
 if "rag" not in st.session_state:
-    st.session_state.rag = "Segmentación A"
+    st.session_state.rag = "sliding"
 if "busqueda_web" not in st.session_state:
     st.session_state.busqueda_web = False
 with st.sidebar:
@@ -73,55 +73,55 @@ for mensaje in st.session_state.historial:
         # Mostrar fuentes (si las hay)
         if mensaje.get("sources"):
             for src in mensaje["sources"]:
-                st.markdown(f"🔖 *Fuente:* {src['titulo']} — {src.get('autor', '')}")
+                documento = src.get("documento") or src.get("titulo", "Documento desconocido")
+                autor = src.get("autor", "Autor desconocido")
+                st.markdown(f"🔖 *Fuente:* {documento} — {autor}")
 
 # Campo de texto para preguntar, aca se debe de tomar para la el llamado
 #a la funcion del agente
 pregunta_usuario = st.text_input(
-    "Escribe tu pregunta…", key="user_input"
+    "Escribe tu pregunta…",
+    key="user_input"
 )
 
 # Opciones de configuración debajo del cuadro de texto
 st.markdown("#### Configuración de la consulta")
 st.session_state.rag = st.selectbox(
     "Seleccionar RAG (segmentación)",
-    ["Segmentación A", "Segmentación B"],
-    index=["Segmentación A", "Segmentación B"].index(st.session_state.rag),
+    ["sliding", "parrafos"],
+    index=["sliding", "parrafos"].index(st.session_state.rag),
 )
 st.session_state.busqueda_web = st.checkbox(
     "Permitir búsquedas web",
     value=st.session_state.busqueda_web
 )
 
-# Botón enviar 
+# Al pulsar "Enviar":
 if st.button("Enviar"):
-    if pregunta_usuario.strip():
-        # Guardar pregunta en la conversación actual
+    pregunta_limpia = pregunta_usuario.strip()
+    if pregunta_limpia:
+        # Registrar pregunta
         st.session_state.historial.append({
             "role": "user",
-            "text": pregunta_usuario.strip(),
+            "text": pregunta_limpia,
         })
 
-        # Llamar al agente con la configuración seleccionada
+        # Llamar al orquestador
         with st.spinner("Escribiendo…"):
-            
-            #cambiar esto por el nombre correcto para la funcion 
-            respuesta, fuentes = call_agent(
-                pregunta_usuario,
-                st.session_state.rag,
-                st.session_state.busqueda_web,
-                historial_textos,
+            respuesta_formateada, fuentes = call_agent(
+                pregunta_limpia,
+                st.session_state.rag
             )
 
-        # Guardar respuesta del agente
+        # Registrar la respuesta del agente
         st.session_state.historial.append({
             "role": "agent",
-            "text": respuesta,
+            "text": respuesta_formateada,
             "sources": fuentes,
         })
 
-        # Limpiar el campo de texto para la siguiente pregunta
-        st.session_state.user_input = ""
+        # Limpiar el campo de texto
+        #st.session_state.user_input = ""
 
-        # Refrescar la página para mostrar la nueva conversación
-        st.experimental_rerun()
+        # Refrescar la interfaz
+        st.rerun()

@@ -4,7 +4,7 @@ import pickle
 from openai import OpenAI
 from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
-
+import re
 client = OpenAI()
 
 def load_faiss_index(index_path, metadata_path):
@@ -31,8 +31,9 @@ def search_vector_db(query, index, metadata, model="text-embedding-3-small", top
             # Construir la fuente con documento y autor
             fuente = f"{meta['documento']} — {meta.get('autor', '')}".strip(" —")
             results.append({
-                "texto": meta["chunk"],   # contenido del párrafo recuperado
-                "fuente": fuente,         # documento — autor
+                "chunk_id": meta.get("chunk_id", ""),  # linea para el sorting
+                "texto": meta["chunk"],                # contenido del párrafo recuperado
+                "fuente": fuente,                      # documento — autor
                 "distancia": float(dist)
             })
     return results
@@ -52,6 +53,12 @@ def rag_tool_function(query: str):
     #return "\n".join([r["texto"] for r in results])
     if not results:
         return "⚠️ No se encontraron resultados relevantes."
+    
+    #ordena los resultados por chunk id para un mejor contexto al orquestador
+    results.sort(
+        key=lambda r: int(re.search(r"[sp](\d+)$", r["chunk_id"]).group(1)) if re.search(r"[sp](\d+)$", r["chunk_id"]) else 0
+    )
+    
 
     # Extraer el texto principal (contenido de los chunks)
     respuesta = "\n".join([r["texto"] for r in results])

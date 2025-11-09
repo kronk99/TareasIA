@@ -2,6 +2,7 @@ import os
 import openai
 from rag_tool import rag_tool
 from websearch_tool import websearch_tool
+from rag_tool_sliding import rag_tool_sliding
 # Inicializa el cliente
 openai.api_key = os.getenv("OPENAI_API_KEY")
 prompt_base = "Eres IA-Tutor ,"\
@@ -10,7 +11,11 @@ prompt_base = "Eres IA-Tutor ,"\
 "Tu rol es responder preguntas basadas en los documentos; siempre citas el documento y el autor donde obtienes la información."\
 "Usa la RAG tool para extraer respuestas de la base vectorial y solo utiliza la WebSearch tool si el usuario lo solicita explícitamente."\
 "No inventes datos ni respondas fuera del dominio."\
-"Mantén la coherencia con preguntas anteriores durante la sesión actual."
+"Mantén la coherencia con preguntas anteriores durante la sesión actual." \
+"Cuando utilices la RAG Tool, analiza los fragmentos recuperados y genera una " \
+"respuesta clara, concisa y precisa . Usa tus capacidades de síntesis para responder " \
+"a la pregunta del usuario con tus propias palabras basándote en el contexto entregado." \
+" Cita al final los documentos y autores de los fragmentos utilizados"
 
 #orden de secuencias
 #1 busca con la pregunta que haga el usuario si se usa el websearch o se usa la base de datos
@@ -21,8 +26,37 @@ prompt_base = "Eres IA-Tutor ,"\
 #se manda el rag y las fuentes al modelo nuevamente para afinar una respuesta, con el prompt base más la pregunta y el historial.
 #se da la respuesta
 
+#segmenta la respuesta en un par respuesta, referencias
+def parse_rag_output(rag_output: str):
+    """
+    Separa el texto de los fragmentos y las referencias del string devuelto por rag_tool.run().
+    Devuelve (contexto, referencias).
+    """
+    # Normaliza saltos de línea
+    rag_output = rag_output.strip()
+    # Divide por "Referencias:"
+    if "Referencias:" in rag_output:
+        context_part, refs_part = rag_output.split("Referencias:", 1)
+    else:
+        # En caso de que no haya referencias
+        context_part, refs_part = rag_output, ""
+    # Elimina la etiqueta "Respuesta:"
+    context = context_part.replace("Respuesta:", "").strip()
+    # Procesa referencias por líneas
+    refs = []
+    for line in refs_part.split("\n"):
+        line = line.strip("- ").strip()
+        if line:
+            # Formato esperado: Documento — Autor
+            parts = line.split("—")
+            doc = parts[0].strip()
+            aut = parts[1].strip() if len(parts) > 1 else ""
+            refs.append({"documento": doc, "autor": aut})
+    return context, refs
 #ultimos_msgs = st.session_state.historial[-6:]  # 3 pares usuario-agente = 6 entradas
-def decide_and_respond(user_question: str, history: list):
+def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
+    #orquestador principal, decide que herramienta utilizar y construye la respuesta final
+
     # structura del mensaje para chatcompletition
     messages = [{"role": "system", "content": prompt_base}]
 
@@ -40,7 +74,7 @@ def decide_and_respond(user_question: str, history: list):
         model="gpt-3.5-turbo-0125",
         messages=messages,
         max_tokens=50,
-        temperature=0.0  # temperatura baja para respuestas más determinísticas
+        temperature=0.20  # temperatura baja para respuestas más determinísticas
     )
 
     assistant_reply = response.choices[0].message.content.strip().lower()
@@ -51,22 +85,73 @@ def decide_and_respond(user_question: str, history: list):
         # El modelo decidió que necesita una búsqueda web
         web_result = websearch_tool.run(user_question)
         return web_result, []  # revisar si retorna un par respuesta , fuentes
-    else:
-        # El modelo decidió usar RAG
-        rag_fragments = rag_tool.run(user_question)
-        #CONSUltar si esto retorna par fragmento, fuentes
-        return rag_fragments, []  # incluiríamos metadatos de fuentes
     
-def construir_respuesta(pregunta: str, frag_textos: str, fuentes: list, rag: str):
-    respuesta = f"Respuesta generada para: {pregunta} usando {rag}\n\n{frag_textos}"
-    # Añade secciones de referencias ARREGLAR ESTO DEL ORQUESTADOR, EL PAR ES RESPUESTA, FUENTES
+    else:
+        # El modelo decidió usar RAG , pero el usuario define cual
+        if (type_rag_tool == "sliding"):
+            rag_fragments = rag_tool_sliding.run(user_question)
+            context, refs = parse_rag_output(rag_fragments)
+            # 4) Crear un nuevo prompt para generar la respuesta a partir del contexto
+            messages_summary = [{"role": "system", "content": prompt_base}]
+            for h in history:
+                role = "user" if h["role"] == "user" else "assistant"
+                messages.append({"role": role, "content": h["text"]})
+            # Incluir el contexto recuperado
+            messages_summary.append({
+                "role": "user",
+                "content": (
+                    f"Contexto recuperado:\n{context}\n\n"
+                    f"Ahora, en base a este contexto, responde a la pregunta: {user_question}"
+                ),
+            })
+
+            # Pedir al modelo que sintetice la respuesta
+            summary_response = openai.chat.completions.create(
+                model="gpt-3.5-turbo-0125",
+                messages=messages_summary,
+                max_tokens=200,
+                temperature=0.2,
+            ).choices[0].message.content.strip()
+
+            return summary_response, refs
+        else: #caso modelo B, por saltos de linea
+            rag_fragments = rag_tool.run(user_question)
+            context, refs = parse_rag_output(rag_fragments)
+            # 4) Crear un nuevo prompt para generar la respuesta a partir del contexto
+            messages_summary = [{"role": "system", "content": prompt_base}]
+            for h in history[-6:]:
+                role = "user" if h["role"] == "user" else "assistant"
+                messages_summary.append({"role": role, "content": h["text"]})
+            # Incluir el contexto recuperado
+            messages_summary.append({
+                "role": "user",
+                "content": (
+                    f"Contexto recuperado:\n{context}\n\n"
+                    f"Ahora, en base a este contexto, responde a la pregunta: {user_question}"
+                ),
+            })
+
+            # Pedir al modelo que sintetice la respuesta
+            summary_response = openai.chat.completions.create(
+                model="gpt-3.5-turbo-0125",
+                messages=messages_summary,
+                max_tokens=200,
+                temperature=0.2,
+            ).choices[0].message.content.strip()
+
+            return summary_response, refs
+        
+    
+def construir_respuesta(pregunta: str, respuesta_final: str, fuentes: list):
+    """
+    Devuelve un string con la respuesta final y referencias, listo para mostrar al usuario.
+    """
+    salida = respuesta_final
     if fuentes:
         ref_lines = ["\nReferencias:"]
         for f in fuentes:
-            ref_lines.append(f"- {f['titulo']} — {f.get('autor','')}")
-        respuesta += "\n".join(ref_lines)
-    return respuesta,fuentes 
+            ref_lines.append(f"- {f['documento']} — {f['autor']}")
+        salida += "\n" + "\n".join(ref_lines)
+    # Opcional: incluir la pregunta al inicio
+    return f"{pregunta}\n{salida}"
 
-# Ejemplo de uso:
-frag_textos, fuentes = decide_and_respond("¿Qué es un agente inteligente?", history=[])
-print(construir_respuesta("¿Qué es un agente inteligente?", frag_textos, fuentes, rag="RAG Tool"))
