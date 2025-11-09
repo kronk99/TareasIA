@@ -1,78 +1,56 @@
 import json
 import unicodedata
 import re
+import os
 
-INPUT_FILE = "output/prueba.jsonl"
+INPUT_FILE   = "clean_texts/10_SEMANA_AI_20251007_1.json"         # nuevo archivo con el formato proporcionado
 OUT_PARAGRAPH = "output/documents_parrafos.jsonl"
-OUT_SLIDING  = "output/documents_sliding.jsonl"
-
-CHUNK_SIZE = 300   # palabras por chunk para sliding window
-OVERLAP    = 100   # solapamiento
 
 def normalize_text(text: str) -> str:
     """
-    Convierte texto a minúsculas y normaliza caracteres sin eliminar los saltos de línea.
-    Sustituye secuencias de espacios y tabulaciones, pero conserva los \n para poder
-    segmentar por párrafos más adelante.
+    Normaliza texto a minúsculas y elimina caracteres no deseados,
+    pero conserva los saltos de línea para permitir la segmentación en párrafos.
     """
     text = text.lower()
     text = unicodedata.normalize("NFKC", text)
     # Unificar \r\n y \r en \n
-    text = text.replace('\r\n', '\n').replace('\r', '\n')
-    # Sustituir múltiples espacios o tabs por un solo espacio (no toca \n)
-    text = re.sub(r'[ \t]+', ' ', text)
-    # Eliminar caracteres no permitidos pero dejar \n
-    text = re.sub(r'[^\x00-\x7Fñáéíóúü°%()¡!¿?.,;:0-9a-z\n ]', '', text)
+    text = text.replace("\r\n", "\n").replace("\r", "\n")
+    # Sustituir múltiples espacios o tabulaciones por un solo espacio (sin tocar \n)
+    text = re.sub(r"[ \t]+", " ", text)
+    # Eliminar cualquier carácter no alfanumérico, acentos, puntuación básica y saltos de línea
+    text = re.sub(r"[^\x00-\x7Fñáéíóúü°%()¡!¿?.,;:0-9a-z\n ]", "", text)
     return text.strip()
 
 def split_paragraphs(text: str):
-    """
-    Cada línea del texto (separada por '\n') será tratada como un párrafo
-    si contiene más de 10 palabras. Esto permite conservar la estructura
-    original de los apuntes.
-    """
-    # Dividir por saltos de línea individuales
-    lines = text.split('\n')
-    # Solo tomar líneas con contenido suficiente
-    return [ln.strip() for ln in lines if len(ln.strip().split()) > 10]
+    """Divide el texto en párrafos por cada salto de línea."""
+    return [ln.strip() for ln in text.split("\n") if len(ln.strip().split()) > 3]
 
-def sliding_window(words, size, overlap):
-    """Permanece sin cambios; genera chunks solapados de tamaño 'size'."""
-    chunks = []
-    i = 0
-    while i < len(words):
-        chunk = words[i:i+size]
-        if len(chunk) < 30:
-            break
-        chunks.append(" ".join(chunk))
-        i += size - overlap
-    return chunks
-
-# Abrir archivos y procesar cada documento
 with open(INPUT_FILE, "r", encoding="utf-8") as infile, \
-     open(OUT_PARAGRAPH, "w", encoding="utf-8") as out_par, \
-     open(OUT_SLIDING,  "w", encoding="utf-8") as out_slide:
+     open(OUT_PARAGRAPH, "w", encoding="utf-8") as out_par:
 
-    for line in infile:
-        doc = json.loads(line)
-        text = normalize_text(doc["contenido"])
+    doc = json.load(infile)
 
-        # --- Segmentación por párrafos (cada salto de línea)
-        for idx, p in enumerate(split_paragraphs(text)):
+    file_name = doc["file_name"]                     # p. ej. "10_SEMANA_AI_20251007_1-222887296.pdf"
+    parts = file_name.split("_", 4)                  # ["10","SEMANA","AI","20251007","1-222887296.pdf"]
+    base_name = "_".join(parts[:4])                  # "10_SEMANA_AI_20251007"
+    sub_id = parts[4].split("-")[0]                  # "1"
+    chunk_base_id = f"{base_name}_{sub_id}.pdf"      # "10_SEMANA_AI_20251007_1.pdf"
+
+    documento = base_name                            # documento sin sufijos
+    autor = doc["metadata"].get("author", "Desconocido")
+
+    parag_index = 0
+    for page in doc.get("pages", []):
+        raw_text = page.get("text", "")
+        norm_text = normalize_text(raw_text)
+        paragraphs = split_paragraphs(norm_text)
+
+        for p in paragraphs:
             record = {
-                **doc,
-                "chunk_id": f"{doc['id']}_p{idx}",
-                "chunk": p
+                "chunk_id": f"{chunk_base_id}_p{parag_index}",
+                "chunk": p,
+                "autor": autor,
+                "documento": documento,
             }
             out_par.write(json.dumps(record, ensure_ascii=False) + "\n")
-
-        # --- Segmentación por sliding window (sin cambios)
-        words = text.split()
-        chunks = sliding_window(words, CHUNK_SIZE, OVERLAP)
-        for idx, c in enumerate(chunks):
-            record = {
-                **doc,
-                "chunk_id": f"{doc['id']}_s{idx}",
-                "chunk": c
-            }
-            out_slide.write(json.dumps(record, ensure_ascii=False) + "\n")
+            parag_index += 1
