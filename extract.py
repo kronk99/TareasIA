@@ -5,8 +5,8 @@ from tqdm import tqdm
 from datetime import datetime
 from dateutil.parser import parse as date_parse
 
-input_folder = "pdfs"
-output_file = "output/documents.jsonl"
+input_folder = "pdf_remover"
+output_file = "output/prueba.jsonl"
 
 def extract_metadata(reader, filename):
     metadata = reader.metadata or {}

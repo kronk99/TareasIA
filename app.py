@@ -1,24 +1,30 @@
 import streamlit as st
 # app.py
 import streamlit as st
+import orquestador
 #cosas por mejorar.--------------------
 #1 definir roles del agente , no solo agent
 #-------------------
 # Se supone una funcion que recibe la pregunta 
 # y devuelve (texto_respuesta, lista_de_fuentes)
-def call_agent(pregunta: str, rag: str, busqueda_web: bool, historial: list):
+def call_agent(pregunta: str, rag: str, busqueda_web: bool): #agregar lo de busqueda web
     "este es el metood para llamar al agente"
     "rag identifica la estrategia de segmentacion que se escoge"
     "busqueda web es un checkbox para usar websearchtool"
     "historial son los mensajes anteriores, devuelve un par respuesta,fuentes"
     # Estilo de formato de ejemplo a seguir
     #aca se debe de hacer las llamadas para las apis y todo el toolchain del chatbot
-    respuesta = f"Respuesta generada para: {pregunta} usando {rag}"
-    fuentes = [
-        {"titulo": "Apunte1.pdf", "autor": "Estudiante A"},
-        {"titulo": "Apunte2.pdf", "autor": "Estudiante B"}
-    ]
-    return respuesta, fuentes
+
+    #respuesta = f"Respuesta generada para: {pregunta} usando {rag}"
+    #fuentes = [
+        #{"titulo": "Apunte1.pdf", "autor": "Estudiante A"},
+        #{"titulo": "Apunte2.pdf", "autor": "Estudiante B"}
+    #]
+    #return respuesta, fuentes
+    ultimos_msgs = st.session_state.historial[-6:]
+    frag_textos,fuentes = orquestador.decide_and_respond(pregunta,ultimos_msgs)
+    respuesta = orquestador.construir_respuesta(pregunta ,frag_textos,fuentes,rag)
+    return respuesta
 
 # Configuración inicial de Streamlit
 st.set_page_config(page_title="Chat RAG", page_icon="💬", layout="wide")
@@ -98,9 +104,7 @@ if st.button("Enviar"):
 
         # Llamar al agente con la configuración seleccionada
         with st.spinner("Escribiendo…"):
-            historial_textos = [
-                m["text"] for m in st.session_state.historial if m["role"] == "user"
-            ]
+            
             #cambiar esto por el nombre correcto para la funcion 
             respuesta, fuentes = call_agent(
                 pregunta_usuario,
