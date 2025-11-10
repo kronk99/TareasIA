@@ -10,6 +10,8 @@ prompt_base = "Eres IA-Tutor ,"\
 "Hablas con un tono amigable y claro."\
 "Tu rol es responder preguntas basadas en los documentos; siempre citas el documento y el autor donde obtienes la información."\
 "Usa la RAG tool para extraer respuestas de la base vectorial y solo utiliza la WebSearch tool si el usuario lo solicita explícitamente."\
+"Decide qué herramienta usar para responder la pregunta del usuario. "\
+"Responde solo con una palabra: 'websearch' si el usuario pidió buscar en internet "\
 "No inventes datos ni respondas fuera del dominio."\
 "Mantén la coherencia con preguntas anteriores durante la sesión actual." \
 "Cuando utilices la RAG Tool, analiza los fragmentos recuperados y genera una " \
@@ -81,12 +83,17 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
 
     # Decidir en base a la respuesta del orquestador, esto se debe de cambiar , se asume que buscar en internet incluye buscar
     #en internet +orquestador del rag
-    if "buscar en internet" in assistant_reply or "websearch" in assistant_reply:
-        # El modelo decidió que necesita una búsqueda web
-        web_result = websearch_tool.run(user_question)
-        return web_result, []  # revisar si retorna un par respuesta , fuentes
+    if any(keyword in assistant_reply for keyword in ["buscar en internet", "busca en internet", "websearch", "internet"]):
+        print("🔎 Modo WebSearch activado")
+    
+        # Ejecutar búsqueda web (ahora devuelve un par)
+        context, refs = websearch_tool.run(user_question)
+        
+        # Retornar directamente los resultados crudos sin pasar por GPT
+        return context, refs
     
     else:
+        print("entre al rag")
         # El modelo decidió usar RAG , pero el usuario define cual
         if (type_rag_tool == "sliding"):
             rag_fragments = rag_tool_sliding.run(user_question)
@@ -131,7 +138,7 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
                 ),
             })
 
-            # Pedir al modelo que sintetice la respuesta
+            # le pide al modelo una mejor sintesis del rag
             summary_response = openai.chat.completions.create(
                 model="gpt-3.5-turbo-0125",
                 messages=messages_summary,

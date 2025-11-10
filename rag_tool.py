@@ -31,8 +31,9 @@ def search_vector_db(query, index, metadata, model="text-embedding-3-small", top
             # Construir la fuente con documento y autor
             fuente = f"{meta['documento']} — {meta.get('autor', '')}".strip(" —")
             results.append({
-                "texto": meta["chunk"],   # contenido del párrafo recuperado
-                "fuente": fuente,         # documento — autor
+                "chunk_id": meta.get("chunk_id", ""),  # linea para el sorting
+                "texto": meta["chunk"],                # contenido del párrafo recuperado
+                "fuente": fuente,                      # documento — autor
                 "distancia": float(dist)
             })
     return results
