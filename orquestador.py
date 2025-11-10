@@ -9,9 +9,9 @@ prompt_base = "Eres IA-Tutor ,"\
 "un asistente académico especializado en apuntes de Inteligencia Artificial (2 semestre 2025)"\
 "Hablas con un tono amigable y claro."\
 "Tu rol es responder preguntas basadas en los documentos; siempre citas el documento y el autor donde obtienes la información."\
-"Usa la RAG tool para extraer respuestas de la base vectorial y solo utiliza la WebSearch tool si el usuario lo solicita explícitamente."\
-"Decide qué herramienta usar para responder la pregunta del usuario. "\
+"Decide qué herramienta usar para responder la pregunta del usuario, websearchtool o RAG, solo utiliza la WebSearch tool si el usuario lo solicita explícitamente. "\
 "Responde solo con una palabra: 'websearch' si el usuario pidió buscar en internet "\
+"Si decides usar la RAG tool, usala para extraer respuestas de la base vectorial "\
 "No inventes datos ni respondas fuera del dominio."\
 "Mantén la coherencia con preguntas anteriores durante la sesión actual." \
 "Cuando utilices la RAG Tool, analiza los fragmentos recuperados y genera una " \
@@ -96,6 +96,7 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
         print("entre al rag")
         # El modelo decidió usar RAG , pero el usuario define cual
         if (type_rag_tool == "sliding"):
+            print("uso sliding")
             rag_fragments = rag_tool_sliding.run(user_question)
             context, refs = parse_rag_output(rag_fragments)
             # 4) Crear un nuevo prompt para generar la respuesta a partir del contexto
@@ -107,8 +108,8 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
             messages_summary.append({
                 "role": "user",
                 "content": (
-                    f"Contexto recuperado:\n{context}\n\n"
-                    f"Ahora, en base a este contexto, responde a la pregunta: {user_question}"
+                    f"Contexto recuperado del RAG tool:\n{context}\n\n"
+                    f"Ahora,utilizando únicamente este contexto, responde a la pregunta: {user_question}"
                 ),
             })
 
@@ -122,6 +123,7 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
 
             return summary_response, refs
         else: #caso modelo B, por saltos de linea
+            print("uso parrafos")
             rag_fragments = rag_tool.run(user_question)
             context, refs = parse_rag_output(rag_fragments)
             # 4) Crear un nuevo prompt para generar la respuesta a partir del contexto
@@ -133,8 +135,8 @@ def decide_and_respond(user_question: str, history: list , type_rag_tool:str):
             messages_summary.append({
                 "role": "user",
                 "content": (
-                    f"Contexto recuperado:\n{context}\n\n"
-                    f"Ahora, en base a este contexto, responde a la pregunta: {user_question}"
+                    f"Contexto recuperado del RAG tool:\n{context}\n\n"
+                    f"Ahora, utilizando únicamente este contexto, responde a la pregunta: {user_question}"
                 ),
             })
 

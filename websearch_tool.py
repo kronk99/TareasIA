@@ -37,9 +37,9 @@ def _search_duckduckgo(query: str, max_results: int):
 
     # Crear respuesta formateada igual que el RAG Tool
     contexto = "\n".join(context_lines)
-    refs_text = "\n".join([f"- {ref['documento']} — {ref['autor']}" for ref in referencias])
+    #refs_text = "\n".join([f"- {ref['documento']} — {ref['autor']}" for ref in referencias])
 
-    return contexto, refs_text   
+    return contexto, referencias   
 
 # Función expuesta a LangChain — ahora devuelve string formateado completo
 def web_search(query: str, max_results=3):
