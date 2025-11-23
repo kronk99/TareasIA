@@ -1,0 +1,12 @@
+# Weights & Biases configuration
+project: autoencoder-reconstruction
+entity: ederv1067-tec-costa-rica 
+name: ${experiment_name}
+save_dir: ./wandb_logs
+offline: false  # Set to true to run offline
+log_model: true  # Log model checkpoints to W&B
+
+# Logging settings
+log_freq: 10
+log_images: true
+num_images_to_log: 8

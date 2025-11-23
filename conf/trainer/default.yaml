@@ -1,0 +1,32 @@
+# PyTorch Lightning Trainer settings
+max_epochs: 50
+accelerator: auto
+devices: 1
+precision: 32
+
+# Training settings
+batch_size: 32
+num_workers: 4
+persistent_workers: true
+
+# Validation and checkpointing
+check_val_every_n_epoch: 1
+log_every_n_steps: 10
+
+# Gradient settings
+gradient_clip_val: 1.0
+accumulate_grad_batches: 1
+
+# Early stopping
+early_stopping:
+  monitor: val_loss
+  patience: 10
+  mode: min
+
+# Model checkpoint
+checkpoint:
+  monitor: val_loss
+  mode: min
+  save_top_k: 3
+  dirpath: checkpoints
+  filename: '{epoch}-{val_loss:.4f}'
