@@ -1,0 +1,27 @@
+defaults:
+  - model: vae
+  - trainer: default
+  - logger: wandb
+  - _self_
+
+# Dataset configuration
+dataset:
+  name: mvtec_ad
+  path: ./dataset
+  classes: ['cable', 'capsule', 'screw', 'transistor']
+  img_size: 128
+  channels: 3
+  train_split: 0.8
+  val_split: 0.2
+
+# General settings
+seed: 42
+experiment_name: autoencoder_reconstruction
+
+# Hydra configuration
+hydra:
+  run:
+    dir: outputs/${now:%Y-%m-%d}/${now:%H-%M-%S}
+  sweep:
+    dir: multirun/${now:%Y-%m-%d}/${now:%H-%M-%S}
+    subdir: ${hydra.job.num}
