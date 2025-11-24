@@ -5,6 +5,31 @@ from torchvision.utils import make_grid
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 import numpy as np
+import kornia
+
+
+class SSIM1CombinadaL1(nn.Module):
+    """
+    Función de pérdida combinada: SSIM + L1
+    Combina similitud estructural (SSIM) con error absoluto (L1).
+    """
+    def __init__(self, window_size=11):
+        super().__init__()
+        self.ssim = kornia.losses.SSIMLoss(window_size=window_size)
+        self.l1 = nn.L1Loss()
+
+    def forward(self, pred, target):
+        """
+        Args:
+            pred: Tensor (B, C, H, W) - predicción
+            target: Tensor (B, C, H, W) - ground truth
+        Returns:
+            Pérdida combinada (escalar)
+        """
+        loss_ssim = self.ssim(pred, target)
+        loss_l1 = self.l1(pred, target)
+        return loss_ssim + loss_l1
+
 
 class LitAutoEncoder(pl.LightningModule):
     def __init__(self, z_dim=256, lr=1e-3, loss_fn='L1'):
@@ -45,13 +70,17 @@ class LitAutoEncoder(pl.LightningModule):
             nn.ConvTranspose2d(64, 3, kernel_size=4, stride=2, padding=1),
             nn.Sigmoid() #uso de sigmoide en lugar de tahn
         )
-        # Selección de función de pérdida, agregar aca las otras funciones de perdida
+        # Selección de función de pérdida
         if loss_fn.upper() == 'L1':
             self.criterion = nn.L1Loss()
         elif loss_fn.upper() == 'L2':
             self.criterion = nn.MSELoss()  # L2
+        elif loss_fn.upper() == 'SSIM':
+            self.criterion = kornia.losses.SSIMLoss(window_size=11)
+        elif loss_fn.upper() == 'SSIM_L1':
+            self.criterion = SSIM1CombinadaL1()
         else:
-            raise ValueError(f"Funcion de pérdida {loss_fn} no incluida")
+            raise ValueError(f"Funcion de pérdida {loss_fn} no incluida. Opciones: L1, L2, SSIM, SSIM_L1")
 
     def encode(self, x):
         h = self.encoder(x)
@@ -108,3 +137,4 @@ class LitAutoEncoder(pl.LightningModule):
 
     def configure_optimizers(self): #el tipo de optimizador es adam
         return torch.optim.Adam(self.parameters(), lr=self.hparams.lr)
+
