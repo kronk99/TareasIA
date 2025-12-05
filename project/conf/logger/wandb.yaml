@@ -1,0 +1,4 @@
+project: "mvtec-anomaly-detection"
+entity: null
+tags: ["baseline"]
+mode: "online"

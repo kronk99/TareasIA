@@ -1,0 +1,5 @@
+defaults:
+  - model: vae
+  - data: mvtec
+  - trainer: default
+  - logger: wandb
